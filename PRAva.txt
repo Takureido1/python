@@ -1,0 +1,17 @@
+frm foc aff UNI DPX DCT AGG SEG CPN COH CST
+informal -FC CSL a ä ai â o au äi ia io
+informal -FC ASO u ü ui û ÿ ou öu ua uo
+informal -FC VAR e ë ei ê ô eu äu ie ië
+informal -FC COA i ö iu î ø oi öi ue uë
+informal +FC CSL wa ya wâ yâ wä yä ea wö yö
+informal +FC ASO wu yu wo yû wô yô oa iö uö
+informal +FC VAR we ye wê yê wë yë iä wae ae
+informal +FC COA wi yi wî yo wï yï uä wø yø
+formal -FC CSL wai yau wui yiu aiwa eiwa uiwa auya euya
+formal -FC ASO woi you woa yoa aiwo eiwo uiwo auyo euyo
+formal -FC VAR wei yeu wea yea aiwe eiwe uiwe auye euye
+formal -FC COA wëi yëu aè yae aiwi eiwi uiwi auyu euyu
+formal +FC CSL awa ewa iwa owa uwa aya eya oya uya
+formal +FC ASO awo ewo iwo owo uwo ayo eyo oyo uyo
+formal +FC VAR awe ewe iwe owe uwe aye eye oye uye
+formal +FC COA awi ewi iwi owi uwi ayu eyu oyu uyu
