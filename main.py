@@ -1,5 +1,6 @@
 import discord
 import os
+import sys
 from dotenv import load_dotenv
 from gloss import easyGloss
 from gloss import hardGloss
@@ -14,7 +15,10 @@ intents = discord.Intents.default()
 intents.message_content = True 
 client = discord.Client(intents=intents)
 
-
+def restart():
+  python = sys.executable
+  os.execl(python, python, *sys.argv)
+  
 def correct(word):
   word = word.replace("ş", "ș")
   word = word.replace("ı", "i")
@@ -57,5 +61,9 @@ async def on_message(message):
     elif message.content.startswith('.affix '):
       argument = message.content.removeprefix('.affix ')
       await message.channel.send(printAffixInfo(argument))
+
+    elif message.content.startswith('.!restart'):
+      await message.channel.send('Restarting...')
+      restart()
 
 client.run(TOKEN)
