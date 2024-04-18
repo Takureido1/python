@@ -6,6 +6,8 @@ from gloss import easyGloss
 from gloss import hardGloss
 from gloss import printRootInfo
 from gloss import printAffixInfo
+from misc import ipaV4
+from misc import getCategory
 
 load_dotenv()
 
@@ -15,7 +17,7 @@ intents = discord.Intents.default()
 intents.message_content = True 
 client = discord.Client(intents=intents)
 
-def restart():
+def reload():
   python = sys.executable
   os.execl(python, python, *sys.argv)
   
@@ -23,8 +25,8 @@ def correct(word):
   word = word.replace("ş", "ș")
   word = word.replace("ı", "i")
   word = word.replace("’", "\'")
+  word = word.replace("ʼ", "\'")
   word = word.lower()
-  print(word)
   return word
 
 @client.event
@@ -62,8 +64,22 @@ async def on_message(message):
       argument = message.content.removeprefix('.affix ')
       await message.channel.send(printAffixInfo(argument))
 
-    elif message.content.startswith('.!restart'):
-      await message.channel.send('Restarting...')
-      restart()
+    elif message.content.startswith('.!reload'):
+      await message.channel.send('Successfully reloaded external resources.')
+      reload()
+
+    elif message.content.startswith('.meaning '):
+      argument = message.content.removeprefix('.meaning ')
+      await message.channel.send(getCategory(argument))
+      
+    elif message.content.startswith('?ipa '):
+      ipa = '/'
+      argument = message.content.removeprefix('?ipa ')
+      args = argument.split()
+      for i in args:
+        ipa += ipaV4(correct(i)) + ' '
+      ipa = ipa[:-1]
+      ipa += '/'
+      await message.channel.send(ipa)
 
 client.run(TOKEN)
