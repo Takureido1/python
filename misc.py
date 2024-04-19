@@ -87,6 +87,7 @@ def ipaV4(word):
 
 SHEET_ID = 'https://docs.google.com/spreadsheets/d/1OAHj-sbg7FS1Q4YQDjdk8joePP7BKE6tgkqApaBVpAg'
 categories = pd.read_csv(f'{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Categories')
+help = pd.read_csv(f'{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Help')
 
 def getCategory(abbrev):
   text = ''
@@ -96,3 +97,11 @@ def getCategory(abbrev):
       text += line.iloc[3]
       return text 
   return 'Couldn\'t find the category.'
+
+def getHelp(msg):
+  text = ''
+  for _, line in help.iterrows():
+    if msg == line.iloc[0]:
+      text += line.iloc[1]
+      return text
+  return None

@@ -8,6 +8,7 @@ from gloss import printRootInfo
 from gloss import printAffixInfo
 from misc import ipaV4
 from misc import getCategory
+from misc import getHelp
 
 load_dotenv()
 
@@ -32,6 +33,7 @@ def correct(word):
 @client.event
 async def on_ready():
     print(f'{client.user.name} has connected to Discord!')
+    await client.change_presence(activity=discord.Game(name=".help for info"))
 
 @client.event
 async def on_message(message):
@@ -43,7 +45,10 @@ async def on_message(message):
       args = argument.split()
       for i in args:
         i = correct(i)
-        gloss += '**'+i+'**: ' + easyGloss(i) + '\n'
+        if i[-1] == '\\':
+          gloss += '**'+i+' **: ' + easyGloss(i) + '\n'
+        else:
+          gloss += '**'+i+'**: ' + easyGloss(i) + '\n'
       print(f'Argument parsed: {argument}')
       await message.channel.send(gloss)
       
@@ -71,6 +76,9 @@ async def on_message(message):
     elif message.content.startswith('.meaning '):
       argument = message.content.removeprefix('.meaning ')
       await message.channel.send(getCategory(argument))
+
+    elif message.content.startswith('.help'):
+      await message.author.send(getHelp('TXT'))
       
     elif message.content.startswith('?ipa '):
       ipa = '/'
