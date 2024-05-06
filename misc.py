@@ -105,3 +105,43 @@ def getHelp(msg):
       text += line.iloc[1]
       return text
   return None
+
+v4_SHEET_ID = 'https://docs.google.com/spreadsheets/d/1wJkn4KZkGi5ziaI3IUf9ARVAByA-GNkYgHU0AN-cAQM'
+v4_roots = pd.read_csv(f'{v4_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=R1')
+v4_affixes = pd.read_csv(f'{v4_SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Affixes')
+
+def findv4Words(word):
+  word = ' '+word.lower()+' '
+  text = ''
+  root = ''
+  aff = ''
+
+  for _, line in v4_roots.iterrows():
+    line_words = ''
+    line_words = str(line.iloc[1]).lower() + ' ' + str(line.iloc[2]).lower()
+    line_words += ' ' + str(line.iloc[3]).lower() + ' ' + str(line.iloc[4]).lower()
+    line_words = line_words.replace(',', ' ').replace('/', ' ')
+    line_words = line_words.replace('(', ' ').replace(')', ' ')
+    if word in line_words:
+        root += line.iloc[0] + ' - \'' + line.iloc[1].upper() + '\'\n'
+    
+  for _, line in v4_affixes.iterrows():
+    line_words = ''
+    for i in range(1, 9):
+        line_words += ' ' + str(line.iloc[i]).lower()
+    line_words = line_words.replace(',', ' ').replace('/', ' ')
+    line_words = line_words.replace('(', ' ').replace(')', ' ')
+    if word in line_words:
+        aff += line.iloc[0] + ' - \'' + line.iloc[1].upper() + '\'\n'
+          
+  if len(root) > 0:
+    text += '**ROOTS:** ' + '\n'
+    text += root
+  if len(aff) > 0:
+    text += '\n' + '**AFFIXES:** ' + '\n'
+    text += aff
+  if len(root) == 0 and len(aff) == 0:
+    return "Error: couldn't find the word."
+  if len(root)+len(aff)+27 > 1999:
+    return "Error: the word is too general."
+  return text

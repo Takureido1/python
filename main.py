@@ -9,6 +9,7 @@ from gloss import printAffixInfo
 from misc import ipaV4
 from misc import getCategory
 from misc import getHelp
+from misc import findv4Words
 
 load_dotenv()
 
@@ -27,6 +28,7 @@ def correct(word):
   word = word.replace("ı", "i")
   word = word.replace("’", "\'")
   word = word.replace("ʼ", "\'")
+  word = word.replace("ļ", "ḷ")
   word = word.lower()
   return word
 
@@ -89,5 +91,10 @@ async def on_message(message):
       ipa = ipa[:-1]
       ipa += '/'
       await message.channel.send(ipa)
+
+    elif message.content.startswith('?find '):
+      argument = 'zxcvbnm'
+      argument = message.content.removeprefix('?find ')
+      await message.channel.send(findv4Words(argument))
 
 client.run(TOKEN)
