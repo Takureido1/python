@@ -1,0 +1,8 @@
+ill 0
+DIR h
+CMV çw
+EXP hm
+DEC y
+IRG w
+ADM hn
+HOR ççw

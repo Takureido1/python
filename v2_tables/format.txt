@@ -1,0 +1,9 @@
+des ess f SCH ISR ATH PRT RSL SBQ CCM OBJ
+INF NRM 1 a ai au ia ua a-i a-u ao
+INF NRM 2 e ei eu ie ue e-i e-u eo
+INF RPV 1 i ï iu ea u-i eë ae aö
+INF RPV 2 o oi ou io uo o-i o-u o-ü
+FOR NRM 1 u ui ü i-u oa oë oe öa
+FOR NRM 2 ä äi äu iä uä eö üo ä-i
+FOR RPV 1 ö öi öu iö uö ö-i ö-u ä-u
+FOR RPV 2 ë ëi ëu ië uë ë-i ë-u äo

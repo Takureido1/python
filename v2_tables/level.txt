@@ -1,0 +1,14 @@
+lvl ᵣ ₐ
+EQU a ä
+SUR u ü
+DEF ï i
+OPT o ö
+MIN e ë
+SPL ai au
+SPL ia ue
+IFR ui iu
+IFR ua ie
+SPE ei eu
+SPE ea eo
+SBE oi ou
+SBE oa oe
