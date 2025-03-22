@@ -10,6 +10,8 @@ from misc import ipaV4
 from misc import getCategory
 from misc import getHelp
 from misc import findv4Words
+from gloss_v2 import glossLong2
+from gloss_v2 import removeDefCats2
 
 load_dotenv()
 
@@ -97,4 +99,23 @@ async def on_message(message):
       argument = message.content.removeprefix('?find ')
       await message.channel.send(findv4Words(argument))
 
+    elif message.content.startswith('-gloss '):
+      gloss = ''
+      argument = message.content.removeprefix('-gloss ')
+      args = argument.split()
+      for i in args:
+        i = correct(i)
+        gloss += '**'+i+'**: ' + removeDefCats2(glossLong2(i)) + '\n'
+      print(f'Argument parsed for v2: {argument}')
+      await message.channel.send(gloss)
+      
+    elif message.content.startswith('-full '):
+      gloss = ''
+      argument = message.content.removeprefix('-full ')
+      args = argument.split()
+      for i in args:
+        gloss += '**'+i+'**: ' + glossLong2(i) + '\n'
+      print(f'Argument parsed: {argument}')
+      await message.channel.send(gloss)
+      
 client.run(TOKEN)
