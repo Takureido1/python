@@ -75,8 +75,8 @@ async def on_message(message):
       await message.channel.send('Successfully reloaded external resources.')
       reload()
 
-    elif message.content.startswith('.meaning '):
-      argument = message.content.removeprefix('.meaning ')
+    elif message.content.startswith('?meaning '):
+      argument = message.content.removeprefix('?meaning ')
       await message.channel.send(getCategory(argument))
 
     elif message.content.startswith('.help'):
