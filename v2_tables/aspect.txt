@@ -1,0 +1,34 @@
+aspect 0 0
+NEU a
+RTR i
+PRS e
+HAB ï
+PRG o
+IMM u
+PCS ä
+REG ë
+EXP ö
+RSM ü
+CSS ai
+RCS ei
+PAU oi
+RGR ui
+PCL au
+CNT eu
+ICS iu
+PMP ou
+CLM ia
+PTC ie
+TMP io
+MTV ua
+CSQ ue
+SQN uo
+EPD ië äu
+DSC uë üa
+CCL ea
+CUL oa
+IMD äi
+TRD öu
+TNS öi
+ITC ëi
+CSM ëu
