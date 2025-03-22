@@ -217,12 +217,12 @@ def glossFormative(word):
     
     function_map = {'': 0, 'l': 1, 'r': 2, 'm': 3, 'n': 3, 'ň': 3}
     function = function_map.get(function, function)
-    if not (function in {'0','1','2','3'}):
+    if not (function in {0,1,2,3}):
         error, error_msg = True, "Error: invalid Cm function affix"
         return error_msg, error
     else:
         function = functions[int(function)][fnc_type-1]
-        
+    
     if check('vmutation.txt',case):
         case = getInfo('vmutation.txt', case, 1)
         root_vow = case[0]
@@ -299,6 +299,7 @@ def glossLong2(word):
     except Exception as e:
         return "Error: couldn\'t parse word."
     if error:
-        return error
+        return gloss
     else:
         return gloss
+
