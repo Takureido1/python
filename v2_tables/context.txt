@@ -1,5 +1,5 @@
 cnx FAC SUB ASM SPE HYP COU IPL ASC
 EXS a o ü ei iu au io uo
 FNC ai i oi ë ia ua ie ue
-RPV u e ëi ëu ea oa eo üo
+RPS u e ëi ëu ea oa eo üo
 AMG ui ö ou eu ï iö öi öu
