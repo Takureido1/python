@@ -16,8 +16,8 @@ EXA bz bzz
 LTL gž gžž
 CRR x xx
 EUP gz gzz
-SKP ž žž
-CYN ks kss
+SKP ks kss
+CYN ž žž
 CTP kš kšš
 DSM pç pçç
 IDG pš pšš 
