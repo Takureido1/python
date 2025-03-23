@@ -17,8 +17,7 @@ diacritics_map = {char: repl for repl, chars in {
     'E': 'ẹēèéĕê',
     'I': 'ịīìíĭî',
     'O': 'ọōòóŏô',
-    'U': 'ụūùúŭû'
-}.items() for char in chars}
+    'U': 'ụūùúŭû'}.items() for char in chars}
 
 tone1='ạẹịọụ'
 tone2='āēīōū'
@@ -27,14 +26,52 @@ tone4='áéíóú'
 tone5='ăĕĭŏŭ'
 tone6='âêîôû'
 
-stress_diac = {'äA','ëE', 'ïI', 'öO', 'üU'}
-
 diphthongs = {"ai", "Ai", "äi", "äI", "ei", "Ei", "ëi", "ëI",
               "oi", "Oi", "öi", "öI", "ui", "Ui", "au", "Au", 
               "äu", "äU", "eu", "Eu", "ëu", "ëU", "iu", "Iu", 
-              "ou", "Ou","öu", "öU"}
+              "ou", "Ou", "öu", "öU", 'äA', 'ëE', 'ïI', 'öO', 'üU'}
 
 functions = [['OPR','DSP'],['STA','ATV'],['MNF','PSN'],['ICH','TNV']]
+stress = ['ant', 'pen', 'ult']
+
+def getStressTone(word):
+    tone, transformed_word, division, vocalic_parts = [], [], [], []
+    error = False
+
+    for char in word:
+        if char in diacritics_map:
+            transformed_word.append(diacritics_map[char])
+            tone.append(char)
+        else:
+            transformed_word.append(char)
+    word = ''.join(transformed_word)
+    
+    pattern = f"({'|'.join(map(re.escape, sorted(diphthongs | vowels, key=len, reverse=True)))})"
+    division = [i for i in re.split(pattern, word) if (len(i) > 0 and i[0] in vowels)]
+    stress = [len(division)-i for i, s in enumerate(division) if any(c.isupper() for c in s)]
+
+    if len(stress) > 1:
+        error = True
+    
+    replacements = {'äA': 'ä', 'ëE': 'ë', 'ïI': 'ï', 'öO': 'ö', 'üU': 'ü'}  
+    for old, new in replacements.items():
+        word = word.replace(old, new).lower()
+    
+    if len(stress) == 0:
+        stress = 1
+    else:
+        stress = stress[0]
+    if stress > 3:
+        error = True
+    for i in range(1,7):
+        tone_list = globals().get(f"tone{i}")
+        if len(tone) > 0 and tone[0] in tone_list:
+            tone = i
+            break
+    else:
+        tone = 1
+
+    return word, stress, tone, error
 
 def divide(word):
   groups = []
@@ -89,6 +126,13 @@ def check(filename, part):
     return False
 
 def glossFormative(word):
+    word, stress, tone, error = getStressTone(word)
+    if error:
+        return "Error: invalid stress"
+    
+    stress_map = [2,1,3]
+    stress = stress_map[stress-1]
+    
     parts = divide(word)
     error = False
     gloss = ''
@@ -98,18 +142,16 @@ def glossFormative(word):
     w_format, aspect, context = ['a']*3
     vps = 'l'
     
-    
     #case 1: illocution is y or w
     for char in ['w','y']:
-        if char in parts[0]:
+        if char in parts[0] and parts[0][0] not in consonants:
             level, w_format = parts[0].split(char)
             illocution = char
             parts.pop(0)
     #case2: no presence of level
     if parts[0] in ['h','çw','hm','hn','ççw']:
-        parts.extend('a')
+        parts = ['a'] + parts
         isLevel = False
-    
     #case3: presence of level
     if parts[1] in ['h','çw','hm','hn','ççw']:
         level = parts[0]
@@ -147,7 +189,7 @@ def glossFormative(word):
     if len(parts) == 1:
         context = parts[0]
         del parts[:1]
-        
+    
     if isLevel and level:
         if check('level.txt', level):
             level = "".join(getInfo('level.txt', level, 1)[:2])
@@ -214,15 +256,15 @@ def glossFormative(word):
     else:
         error, error_msg = True, "Error: invalid Cr root mutation"
         return error_msg, error
-    
+
     function_map = {'': 0, 'l': 1, 'r': 2, 'm': 3, 'n': 3, 'ň': 3}
-    function = function_map.get(function, function)
+    function = int(function_map.get(function, function))
     if not (function in {0,1,2,3}):
         error, error_msg = True, "Error: invalid Cm function affix"
         return error_msg, error
     else:
         function = functions[int(function)][fnc_type-1]
-    
+
     if check('vmutation.txt',case):
         case = getInfo('vmutation.txt', case, 1)
         root_vow = case[0]
@@ -230,7 +272,13 @@ def glossFormative(word):
     else:
         error, error_msg = True, "Error: invalid Vr case affix"
         return error_msg, error
-        
+    
+    vow_map = ['a','e','i','o','u']
+    vow_index = vow_map.index(root_vow)
+    tone_list = globals().get(f"tone{tone}")
+    root_vow = tone_list[vow_index]
+    gloss += function + '.'
+    gloss += '__S'+str(stress)+'__-'
     gloss += '\"'+root_cns+root_vow+"\"-"
     gloss += case + '-'
     
@@ -252,7 +300,6 @@ def glossFormative(word):
         else:
             error, error_msg = True, "Error: invalid Vx suffix"
         
-
     if context:
         context = context.replace('\'','')
         if check('context.txt', context):
@@ -278,7 +325,8 @@ def glossFormative(word):
 
 default = ['ASR','NRM','SCH','PRC',
            'CTX','PPS','NEU','OBL',
-           'DEL','M','CSL','UNI','EXS','FAC']
+           'DEL','M','CSL','UNI',
+           'EXS','FAC','OPR']
            
 def removeDefCats2(gloss):
     newBits = []
@@ -297,9 +345,9 @@ def glossLong2(word):
     try:
         gloss, error = glossFormative(word)
     except Exception as e:
+        print(e)
         return "Error: couldn\'t parse word."
     if error:
         return gloss
     else:
         return gloss
-
