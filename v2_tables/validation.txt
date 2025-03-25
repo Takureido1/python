@@ -1,0 +1,8 @@
+va1 va2 0 
+CNF AFM -
+RPR INF w
+ITU PSM y 
+PSM2 PPT h
+PPT2 CJT hw
+DUB TEN hm
+PUT IPB hn
