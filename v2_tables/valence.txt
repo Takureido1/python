@@ -1,0 +1,15 @@
+val 0 1
+MNO a ai
+PRL e ei
+CRO o oi
+RCP i iu
+CPL u ui
+NNR ä au
+DUP ë eu
+DEM ö ou
+RES ü ëu
+IMT ia ua
+CNG ie ue
+PTI io uo
+IDC iö uö
+MUT ea oa
