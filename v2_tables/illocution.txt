@@ -1,4 +1,5 @@
 ill 0
+ASR hw
 DIR h
 CMV çw
 EXP hm
