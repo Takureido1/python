@@ -1,0 +1,9 @@
+des aff UNI DPX DCT AGG SEG CPN COH CST MLT
+IFL CSL a au ai ia ua ya yo ea iö
+IFL ASO u iu ui ie ue yu yë ae ao
+IFL VAR e eu ei io uo ye yö oa oe
+IFL COA i ou oi ië uë yi yä eo uö
+FML CSL o wa wo äi äu wai yau wia yua
+FML ASO ü wu wë ë ï wui yiu wie yue
+FML VAR ö we wö ëi ëu wei yeu wio yuo
+FML COA ä wi wä öi öu woi you wië yuë
