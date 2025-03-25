@@ -55,10 +55,11 @@ def getStressTone(word):
     
     replacements = {'äA': 'ä', 'ëE': 'ë', 'ïI': 'ï', 'öO': 'ö', 'üU': 'ü'}  
     for old, new in replacements.items():
-        word = word.replace(old, new).lower()
+        word = word.replace(old, new)
+    word = word.lower()
     
-    if len(stress) == 0:
-        stress = 1
+    if len(division) == 1 or len(stress) == 0:
+        stress = 2
     else:
         stress = stress[0]
     if stress > 3:
@@ -121,14 +122,15 @@ def check(filename, part):
     filename = 'v2_tables/'+filename
     with open(filename, 'r') as file:
         for line in file:
-            if part in line:
+            elements = line.split()
+            if part in elements:
                 return True
     return False
 
 def glossFormative(word):
     word, stress, tone, error = getStressTone(word)
     if error:
-        return "Error: invalid stress"
+        return "Error: invalid stress", True
     
     stress_map = [2,1,3]
     stress = stress_map[stress-1]
@@ -149,11 +151,11 @@ def glossFormative(word):
             illocution = char
             parts.pop(0)
     #case2: no presence of level
-    if parts[0] in ['h','çw','hm','hn','ççw']:
+    if parts[0] in ['hw','h','çw','hm','hn','ççw']:
         parts = ['a'] + parts
         isLevel = False
     #case3: presence of level
-    if parts[1] in ['h','çw','hm','hn','ççw']:
+    if parts[1] in ['hw','h','çw','hm','hn','ççw']:
         level = parts[0]
         illocution = parts[1]
         w_format = parts[2]
@@ -299,6 +301,7 @@ def glossFormative(word):
             del suffixes[:2]
         else:
             error, error_msg = True, "Error: invalid Vx suffix"
+            return error_msg, error
         
     if context:
         context = context.replace('\'','')
@@ -321,12 +324,244 @@ def glossFormative(word):
             error, error_msg = True, "Error: invalid Cb bias suffix"
             return error_msg, error
     
+    if len(parts) > 0:
+        return "Error: invalid word", True
+        
     return gloss, error
 
+def glossValAdj(word):
+    word, stress, tone, error = getStressTone(word)
+    if not stress == 1 and len(divide(word)) > 3:
+        return "Error: invalid stress", True
+    
+    parts = divide(word)
+    error = False
+    root_cns, root_vow, bias, gloss = ['']*4
+    
+    #case 1: validation is y or w
+    for char in ['w','y']:
+        if char in parts[0] and parts[0][0] not in consonants:
+            _, valence = parts[0].split(char)
+            validation = char
+            del parts[:1]
+    #case 2: validation is not y or w
+    if parts[0] in ['h','hw','hm','hn']:
+        validation = parts[0]
+        valence = parts[1]
+        del parts[:2]
+    #case 3: no validation
+    elif parts[0][0] in vowels:
+        validation = '-'
+        valence = parts[0]
+        del parts[:1]
+    #case 4: no validation and valence
+    else:
+        validation = '-'
+        valence = 'a'
+    
+    #incorporation
+    if '-' not in parts[0]:
+        root_cns = parts[0]
+        root_vow = parts[1]
+        del parts[:2]
+    
+    modality = parts[0]
+    aspect = parts[1]
+    del parts[:2]
+    
+    if len(parts) == 1:
+        bias = parts[0]
+        del parts[:1]
+        
+    if valence:
+        if check('valence.txt',valence):
+            valence = getInfo('valence.txt',valence,1)
+            valtype = int(valence[1])
+            valence = valence[0]
+        else:
+            error, error_msg = True, "Error: invalid Vv valence affix"
+            return error_msg, error
+    
+    validation = getInfo('validation.txt',validation,2)[valtype]
+    gloss += validation+'.'+valence+'-'
+    
+    if root_cns:
+        if check('cmutation.txt',root_cns):
+            root_cns = getInfo('cmutation.txt',root_cns,1)
+            pattern = root_cns[1]
+            root_cns = root_cns[0]
+        else:
+            error, error_msg = True, "Error: invalid Cd root affix"
+            return error_msg, error
+            
+    if root_vow:
+        if check('vdvow.txt',root_vow):
+            root_vow = getInfo('vdvow.txt',root_vow,2)
+            designation = root_vow[0]
+            stem = root_vow[1]
+            root_vow = root_vow[2]
+        else:
+            error, error_msg = True, "Error: invalid Vd root affix"
+            return error_msg, error
+            
+    if root_cns:
+        vow_map = ['a','e','i','o','u']
+        vow_index = vow_map.index(root_vow)
+        tone_list = globals().get(f"tone{tone}")
+        root_vow = tone_list[vow_index]
+        gloss += '__S'+stem+'__-'
+        gloss += '\"'+root_cns+root_vow+"\"-"
+    
+    if check('modality.txt', modality):
+        modality = getInfo('modality.txt', modality, 1)[0]
+        gloss += modality+'-'
+    else:
+        error, error_msg = True, "Error: invalid Cm modality affix"
+        return error_msg, error
+    
+    if check('aspect.txt', aspect):
+        aspect = getInfo('aspect.txt', aspect, 1)[0]
+        gloss += aspect
+    else:
+        error, error_msg = True, "Error: invalid Vp valence affix"
+        return error_msg, error
+        
+    if bias:
+        if check('bias.txt', bias):
+            bias = getInfo('bias.txt',bias,1)
+            if bias[1] == '⁺':
+                bias = bias[0]+bias[1]
+            else:
+                bias = bias[0]
+            gloss += '-'+bias
+        else:
+            error, error_msg = True, "Error: invalid Cb bias suffix"
+            return error_msg, error
+        
+    if len(parts) > 0:
+        return "Error: invalid word", True
+            
+    return gloss, error
+
+def glossReferent(word):
+    gloss = ''
+    parts = divide(word)
+    lenparts = len(parts)
+    error, ambig = False, False
+    
+    word,stress,tone,error = getStressTone(word)
+    parts = divide(word)
+    Va, Cr, Vz, Vd, Cs, Cb = ['']*6
+    essence = 'NRM'
+    
+    #if Cr is w or y:
+    for char in ['w','y']:
+        if char in parts[0]:
+            Va, Vk = parts[0].split(char,1)
+            Cr = char
+            del parts[:1]
+            break
+    if len(parts) > 0 and not Va and parts[0][0] in vowels:
+        Va = parts[0]
+        del parts[:1]
+        
+    if not Cr:
+        Cr = parts[0]
+        Vk = parts[1]
+        del parts[:2]
+    
+    for char in ['\'w','\'y']:
+        if char in Vk:
+            Vk, Vz = Vk.split(char)
+            Vk += char
+    
+    if len(parts) > 0:
+        Vd = Vz
+        Vz = ''
+        Cs = parts[0]
+        del parts[:1]
+        if len(parts) > 0:
+            Vz = parts[0]
+            del parts[:1]
+        if len(parts) > 0:
+            Cb = parts[0]
+            del parts[:1]
+    
+    if tone in [3,4]:
+        tone = tone-2
+        essence = 'RPV'
+        
+    if lenparts < 3 and not Vz:
+        if check('pra.txt', Cr):
+            Cr = getInfo('pra.txt',Cr,2)[tone-1]
+            gloss += Cr+'-'
+        else:
+            return "Error: invalid Cr referent infix", True
+        if check('pracase.txt', Vk+str(stress)):
+            Vk = getInfo('pracase.txt',Vk+str(stress),1)[0]
+            gloss += Vk+'.'+essence
+        else:
+            return "Error: invalid Vk case suffix", True
+            
+    else:
+        if stress == 1:
+            degtype = '₂'
+        if stress == 2:
+            degtype = '₁'
+        if stress == 3:
+            degtype = '₃'
+        
+        if stress == 1 and not Cs and not Va:
+            gloss += 'FML' + '-'
+        
+        if not Va:
+            Va = 'a'
+        if check('pracomplex.txt',Va):
+            Va = ".".join(getInfo('pracomplex.txt',Va, 2))
+            gloss += essence+'-'+Va+'-'
+        else:
+            return "Error: invalid Va complex prefix", True
+            
+        if check('pra.txt', Cr):
+            Cr = getInfo('pra.txt',Cr,2)[tone-1]
+            gloss += Cr+'-'
+        else:
+            return "Error: invalid Cr referent infix", True
+            
+        if check('pracase.txt', Vk):
+            Vk = getInfo('pracase.txt',Vk,1)[0]
+            gloss += Vk+'-'
+        else:
+            return "Error: invalid Vk case suffix", True  
+        
+        if Vd:
+            if check('pravd.txt',Vd):
+                deg = getInfo('pravd.txt', Vd, 1)[0]
+                gloss += '\"'+Cs+'\"'+degtype+'-'
+            else:
+                return "Error: invalid Vd degree infix", True
+                
+        if not Vz:
+            Vz = 'a'
+        if check('pravz.txt',Vz):
+            Vz = ".".join(getInfo('pravz.txt',Vz, 1))
+            gloss += Vz
+        else:
+            return "Error: invalid Vz suffix", True
+            
+        if Cb:
+            if check('bias.txt',Cb):
+                Cb = getInfo('bias.txt', Cb, 1)[0]
+                gloss += '-'+Cb
+            else:
+                return "Error: invalid Cb bias suffix", True
+  
+    return gloss, error
+            
 default = ['ASR','NRM','SCH','PRC',
            'CTX','PPS','NEU','OBL',
-           'DEL','M','CSL','UNI',
-           'EXS','FAC','OPR']
+           'DEL','M','CSL','UNI', 'IFL',
+           'EXS','FAC','OPR','CNF','MNO']
            
 def removeDefCats2(gloss):
     newBits = []
@@ -342,12 +577,29 @@ def removeDefCats2(gloss):
     return '-'.join(newBits)
 
 def glossLong2(word):
+    error = False
+
     try:
         gloss, error = glossFormative(word)
     except Exception as e:
-        print(e)
-        return "Error: couldn\'t parse word."
+        # print(e)
+        gloss = "Error: invalid word"
+        error = True
+        
     if error:
-        return gloss
-    else:
-        return gloss
+        try:
+            gloss, error = glossValAdj(word)
+        except Exception as e:
+            # print(e)
+            gloss = "Error: invalid word"
+            error = True
+            
+    if error:
+        try:
+            gloss, error = glossReferent(word)
+        except Exception as e:
+            # print(e)
+            gloss = "Error: invalid word"
+            error = True
+            
+    return gloss
