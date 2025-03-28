@@ -1,7 +1,7 @@
 des s a e i o u
-INF 1 a e i o u
-INF 2 ä ë ï ö ü
-INF 3 ai ei ëi oi ui
-FOR 1 au eu iu ou ëu
-FOR 2 ia ie ië io i-u
-FOR 3 ua ue u-i uo uë
+IFL 1 a e i o u
+IFL 2 ä ë ï ö ü
+IFL 3 ai ei ëi oi ui
+FML 1 au eu iu ou ëu
+FML 2 ia ie ië io i-u
+FML 3 ua ue u-i uo uë
