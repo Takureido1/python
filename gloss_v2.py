@@ -1,4 +1,9 @@
 import re
+import pandas as pd
+
+SHEET_ID = 'https://docs.google.com/spreadsheets/d/1OAHj-sbg7FS1Q4YQDjdk8joePP7BKE6tgkqApaBVpAg'
+affixes = pd.read_csv(f'{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Affixes%20v2')
+roots = pd.read_csv(f'{SHEET_ID}/gviz/tq?tqx=out:csv&sheet=Roots%20v2')
 
 consonants = {'p', 'b', 'm', 'f', 'v', 't', 
               'd', 'ŧ', 'đ', 'n', 'l', 'c',
@@ -127,6 +132,30 @@ def check(filename, part):
                 return True
     return False
 
+def getRoot(root, pattern, designation, stem):
+    pattern = int(pattern)
+    stem = int(stem)
+    form = 0
+    if designation == 'IFL':
+        form = 1
+    else:
+        form = 2
+    number = 9*(form-1)+3*(pattern-1)+stem
+    for _, line in roots.iterrows():
+        if root == line.iloc[0]:
+            return line.iloc[number]
+    return root
+    
+def getSuffix(suffix, s_degree, s_type):
+    s_type = {'₁': 1, '₂': 2, '₃': 3}.get(s_type)
+    s_degree = int(s_degree)
+    for _, line in affixes.iterrows():
+        if suffix == line.iloc[0] and str(s_type) in str(line.iloc[-1]):
+            return line.iloc[s_degree]
+    return suffix
+
+    
+
 def glossFormative(word):
     word, stress, tone, error = getStressTone(word)
     if error:
@@ -187,6 +216,21 @@ def glossFormative(word):
         suffixes.append(parts[0])
         suffixes.append(parts[1])
         del parts[:2]
+    
+    new_suffixes = []
+    for suf in suffixes:
+        temp = []
+        start = 0
+        for i, char in enumerate(suf):
+            if char in ambiguous:
+                if start != i:
+                    temp.append(suf[start:i])
+                temp.append(char)
+                start = i+1
+        if start < len(suf):
+            temp.append(suf[start:])
+        new_suffixes.extend(temp)
+    suffixes = new_suffixes
         
     if len(parts) == 1:
         context = parts[0]
@@ -243,18 +287,18 @@ def glossFormative(word):
             return error_msg, error
     
     if check('cmutation.txt',root_cns):
-        root_cns = getInfo('cmutation.txt',root_cns,1)[0]
+        root_cns, pattern = getInfo('cmutation.txt',root_cns,1)
         function = '0'
     elif check('function.txt',root_cns):
         function = getInfo('function.txt',root_cns,1)
-        root_cns = getInfo('cmutation.txt',function[0],1)[0]
+        root_cns, pattern = getInfo('cmutation.txt',function[0],1)
         function = function[1]
     elif check('cmutation.txt',root_cns[1:]):
         function = root_cns[0]
-        root_cns = getInfo('cmutation.txt',root_cns[1:],1)[0]
+        root_cns, pattern = getInfo('cmutation.txt',root_cns[1:],1)
     elif check('cmutation.txt',root_cns[:-1]):
         function = root_cns[-1]
-        root_cns = getInfo('cmutation.txt',root_cns[:-1],1)[0]
+        root_cns, pattern = getInfo('cmutation.txt',root_cns[:-1],1)
     else:
         error, error_msg = True, "Error: invalid Cr root mutation"
         return error_msg, error
@@ -279,9 +323,13 @@ def glossFormative(word):
     vow_index = vow_map.index(root_vow)
     tone_list = globals().get(f"tone{tone}")
     root_vow = tone_list[vow_index]
+    
+    root = root_cns+root_vow
+    root = getRoot(root,pattern,designation,stress)
+    
     gloss += function + '.'
     gloss += '__S'+str(stress)+'__-'
-    gloss += '\"'+root_cns+root_vow+"\"-"
+    gloss += '\"'+root+"\"-"
     gloss += case + '-'
     
     if check('cacomplex.txt', ca_plex):
@@ -296,7 +344,7 @@ def glossFormative(word):
             sufvow = getInfo('suffix.txt',suffixes[0],1)
             s_degree = sufvow[0]
             s_type = sufvow[1]
-            suffix = '\"'+suffixes[1]+'\"'
+            suffix = '\"'+getSuffix(suffixes[1],s_degree, s_type)+'\"'
             gloss += suffix+s_type+'-'
             del suffixes[:2]
         else:
@@ -409,8 +457,10 @@ def glossValAdj(word):
         vow_index = vow_map.index(root_vow)
         tone_list = globals().get(f"tone{tone}")
         root_vow = tone_list[vow_index]
+        root = root_cns+root_vow
+        root = getRoot(root,pattern,designation,stem)
         gloss += '__S'+stem+'__-'
-        gloss += '\"'+root_cns+root_vow+"\"-"
+        gloss += '\"'+root+"\"-"
     
     if check('modality.txt', modality):
         modality = getInfo('modality.txt', modality, 1)[0]
@@ -455,13 +505,29 @@ def glossReferent(word):
     essence = 'NRM'
     
     #if Cr is w or y:
-    for char in ['w','y']:
-        if char in parts[0]:
-            Va, Vk = parts[0].split(char,1)
-            Cr = char
-            del parts[:1]
-            break
-    if len(parts) > 0 and not Va and parts[0][0] in vowels:
+    if len(parts) == 1 and parts[0].count('w')+parts[0].count('y') == 1:
+        match = re.search(r'[wy]', parts[0])
+        split_index = match.start()
+        Va, Vk = parts[0][:split_index], parts[0][split_index+1:]
+        Cr = match.group(0)
+        del parts[:1]
+        
+    elif parts[0].count('w')+parts[0].count('y') > 1:
+        if parts[0].count('w')+parts[0].count('y')-parts[0].count('\'') > 1:
+            char2 = parts[0][0]
+            parts[0] = parts[0][1:]
+            match = re.search(r'[wy]', parts[0])
+            split_index = match.start()
+            Va, Vk = char2+parts[0][:split_index], parts[0][split_index+1:]
+            Cr = match.group(0)
+        elif parts[0].count('w')+parts[0].count('y')-parts[0].count('\'') == 1:
+            match = re.search(r'[wy]', parts[0])
+            split_index = match.start()
+            Va, Vk = parts[0][:split_index], parts[0][split_index+1:]
+            Cr = match.group(0)
+        del parts[:1]
+            
+    if len(parts) > 0 and not Va and (parts[0][0] in vowels or parts[0][0] in ambiguous):
         Va = parts[0]
         del parts[:1]
         
@@ -537,6 +603,7 @@ def glossReferent(word):
         if Vd:
             if check('pravd.txt',Vd):
                 deg = getInfo('pravd.txt', Vd, 1)[0]
+                Cs = getSuffix(Cs, deg, degtype)
                 gloss += '\"'+Cs+'\"'+degtype+'-'
             else:
                 return "Error: invalid Vd degree infix", True
@@ -550,11 +617,16 @@ def glossReferent(word):
             return "Error: invalid Vz suffix", True
             
         if Cb:
-            if check('bias.txt',Cb):
-                Cb = getInfo('bias.txt', Cb, 1)[0]
+            if check('bias.txt', Cb):
+                Cb = getInfo('bias.txt',Cb,1)
+                if Cb[1] == '⁺':
+                    Cb = Cb[0]+Cb[1]
+                else:
+                    Cb = Cb[0]
                 gloss += '-'+Cb
             else:
-                return "Error: invalid Cb bias suffix", True
+                error, error_msg = True, "Error: invalid Cb bias suffix"
+                return error_msg, error
   
     return gloss, error
             
